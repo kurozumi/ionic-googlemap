@@ -16,7 +16,7 @@ export class HomePage implements OnInit, AfterContentInit {
   markers: string[] = [];
   address: string;
 
-  latLng: any = new google.maps.LatLng({lat:35.709438, lng: 139.731364});
+  latLng: any = new google.maps.LatLng({lat:35.681236, lng: 139.767125});
   geocoder:any = new google.maps.Geocoder();
   directionsService:any = new google.maps.DirectionsService();
   directionsDisplay:any = new google.maps.DirectionsRenderer();
@@ -99,7 +99,7 @@ export class HomePage implements OnInit, AfterContentInit {
         if (status == google.maps.DirectionsStatus.OK) {
             directionsDisplay.setDirections(response);
 
-            let infoWindowContent = '<div id="content">'+
+            let infoWindowContent = '<div id="content" style="height:100px;">'+
             '<h4><a href="'+hotel.hotel[0].hotelBasicInfo.hotelInformationUrl+'">'+hotel.hotel[0].hotelBasicInfo.hotelName+'</a></h4>' +
             '<p>ホテルまでの距離：'+response.routes[0].legs[0].distance.text+'</p>' +
             '<h5>ルート</h5>';
@@ -110,8 +110,6 @@ export class HomePage implements OnInit, AfterContentInit {
             }            
             infoWindowContent += '</div>';
 
-            console.log(infoWindowContent);
-    
             let infoWindow = new google.maps.InfoWindow({
               content: infoWindowContent
             });
