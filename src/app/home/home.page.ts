@@ -1,6 +1,7 @@
 import { Component, AfterContentInit, OnInit, ViewChild } from '@angular/core';
 import { LoadingService } from '../service/loading.service';
 import { TravelService } from '../service/rakuten/travel.service';
+import { $ } from 'protractor';
 
 declare var google;
 
@@ -13,6 +14,7 @@ export class HomePage implements OnInit, AfterContentInit {
   map: any;
   zoom: number = 14;
   markers: string[] = [];
+  address: string;
 
   latLng: any = new google.maps.LatLng({lat:35.709438, lng: 139.731364});
   geocoder:any = new google.maps.Geocoder();
@@ -71,8 +73,12 @@ export class HomePage implements OnInit, AfterContentInit {
           title: hotels[i].hotel[0].hotelBasicInfo.hotelName,
           map: this.map
         });
-        
-        this.addRouteListener(marker, latlng);
+
+        google.maps.event.addListener(marker, 'click', ((event) => {
+          let address = this.address === undefined ? this.latLng : this.address;
+          this.addRoute(address, latlng, marker, hotels[i]);
+        }));
+
         this.markers[i] = marker;
       }
     }, error => {
@@ -82,15 +88,8 @@ export class HomePage implements OnInit, AfterContentInit {
     this.loading.dismiss();
   }
 
-  addRouteListener(marker, latlng) {
-    google.maps.event.addListener(marker, 'click', ((event) => {
-      this.getRoute(this.map.getCenter(), latlng);
-    }));
-  }
-
-  getRoute(origin, destination, travelMode='WALKING') {
+  addRoute(origin, destination, marker, hotel, travelMode='WALKING') {
     let directionsDisplay = this.directionsDisplay;
-    let map = directionsDisplay.getMap();
     
     this.directionsService.route({
           origin: origin,
@@ -99,6 +98,25 @@ export class HomePage implements OnInit, AfterContentInit {
     }, function (response, status) {
         if (status == google.maps.DirectionsStatus.OK) {
             directionsDisplay.setDirections(response);
+
+            let infoWindowContent = '<div id="content">'+
+            '<h4><a href="'+hotel.hotel[0].hotelBasicInfo.hotelInformationUrl+'">'+hotel.hotel[0].hotelBasicInfo.hotelName+'</a></h4>' +
+            '<p>ホテルまでの距離：'+response.routes[0].legs[0].distance.text+'</p>' +
+            '<h5>ルート</h5>';
+            let steps = response.routes[0].legs[0].steps;
+            let cnt = steps.length;
+            for(let i=0; i<cnt; i++) {
+              infoWindowContent += '<p>'+steps[i].instructions+'</p>';
+            }            
+            infoWindowContent += '</div>';
+
+            console.log(infoWindowContent);
+    
+            let infoWindow = new google.maps.InfoWindow({
+              content: infoWindowContent
+            });
+    
+            infoWindow.open(this.map, marker);
         } else {
             window.alert('ルートが取得できませんでした。');
             //window.alert('Directions request failed due to ' + status);
@@ -106,9 +124,8 @@ export class HomePage implements OnInit, AfterContentInit {
     });
   }
 
-  onSearch(event: any) {
-    let address = event.target.value;
-    this.geocoder.geocode({'address': address, 'region': 'ja'}, ((results, status) => {
+  onSearch() {
+    this.geocoder.geocode({'address': this.address, 'region': 'ja'}, ((results, status) => {
       if(status == google.maps.GeocoderStatus.OK) {
         this.map.setCenter(results[0].geometry.location);
         this.showMarkers();

@@ -1,13 +1,23 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      ホテルまでの徒歩ルート
+      指定場所からホテルまでの徒歩ルート
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content padding>
-  <ion-searchbar (ionBlur)="onSearch($event)"></ion-searchbar>
+  <form (ngSubmit)="onSearch()">
+    <ion-item>
+      <ion-label>
+        <ion-icon name="search"></ion-icon>
+      </ion-label>
+      <ion-input type="text" [(ngModel)]="address" name="address"></ion-input>
+      <button ion-button item-right type="submit" icon-only>
+        <ion-icon name="md-arrow-forward"></ion-icon>
+      </button>
+    </ion-item>
+  </form>
 
   <div #mapElement class="map"></div>
 </ion-content>
